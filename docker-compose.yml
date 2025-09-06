@@ -1,0 +1,13 @@
+services:
+  madr_database:
+    image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: jean
+      POSTGRES_DB: madr_db
+      POSTGRES_PASSWORD: JC123
+    ports:
+      - "5432:5432"
+volumes:
+  pgdata:
