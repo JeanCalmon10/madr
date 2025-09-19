@@ -9,5 +9,21 @@ services:
       POSTGRES_PASSWORD: JC123
     ports:
       - "5432:5432"
+
+  alembic:
+    build: .
+    working_dir: /app
+    volumes:
+      - .:/app
+    depends_on:
+      - madr_database
+    environment:
+      DB_HOST: madr_database
+      DB_PORT: 5432
+      DB_NAME: madr_db
+      DB_USER: jean
+      DB_PASSWORD: JC123
+    command: poetry run alembic upgrade head
+
 volumes:
   pgdata:

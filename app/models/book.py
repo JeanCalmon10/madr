@@ -2,13 +2,12 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship, registry
 
-from app.models.base import mapper_registry, Base
+from app.models.base import Base
 
 # Ignore circular import for type checking
 if TYPE_CHECKING:
     from app.models.romancist import Romancist
 
-@mapper_registry.mapped
 class Book(Base):
     __tablename__ = 'books'
 

@@ -16,11 +16,14 @@ def create_access_token(data: dict) -> str:
 def decode_token(token: str) -> dict:
     """Decode a JWT token."""
     try:
-        decoded_jwt = jwt.decode(token, SECRET_KEY, algorithm=[ALGORITHM])
+        decoded_jwt = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if decoded_jwt['exp'] >= datetime.now(UTC).timestamp():
             return decoded_jwt
     except jwt.PyJWTError:
         return None
+
+
+
 
 
 

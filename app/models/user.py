@@ -1,9 +1,8 @@
 from sqlalchemy import Integer, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship, registry
 
-from app.models.base import mapper_registry, Base
+from app.models.base import Base
 
-@mapper_registry.mapped
 class User(Base):
     __tablename__ = 'users'
 
