@@ -8,7 +8,7 @@ from app.core.security import verify_password
 from app.core.jwt import decode_token
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """Retrieve the current user based on the provided JWT token."""

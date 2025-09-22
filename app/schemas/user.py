@@ -21,3 +21,6 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
 
+class Message(BaseModel):
+    """Validate data for returning a message."""
+    message: str
