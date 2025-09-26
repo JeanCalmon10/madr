@@ -1,3 +1,133 @@
 from fastapi import APIRouter
+from fastapi import Depends, HTTPException
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
+from typing import Annotated
+
+from app.core.auth import get_current_user
+from app.core.database import get_db
+
+from app.schemas.romancist import RomancistResponse, RomancistCreate, RomancistUpdate, RomancistList, Message
+
+from app.models.romancist import Romancist
+from app.models.user import User
 
 from http import HTTPStatus
+
+router = APIRouter(
+    prefix='/romancists',
+    tags=['Romancist'],
+)
+
+@router.post('/', response_model=RomancistResponse, status_code=HTTPStatus.CREATED)
+def create_romancist(
+    romancist: RomancistCreate, 
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    """Create a new romancist."""
+    db_romancist = db.scalar(
+        select(Romancist).where(Romancist.name == romancist.name)
+    )
+
+    if db_romancist:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail="Romancist already exists",
+        )
+    
+    db_romancist = Romancist(
+        name=romancist.name,
+    )
+
+    db.add(db_romancist)
+    db.commit()
+    db.refresh(db_romancist)
+
+    return db_romancist
+
+@router.get('/{romancist_id}', response_model=RomancistResponse, status_code=HTTPStatus.OK)
+def read_romancist(romancist_id: int, db: Session = Depends(get_db)):
+    """Get a romancist by ID."""
+    db_romancist = db.scalar(
+        select(Romancist).where(Romancist.id == romancist_id)
+    )
+
+    if not db_romancist:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Romancist not found",
+        )
+    
+    return db_romancist
+
+@router.put('/{romancist_id}', response_model=RomancistResponse)
+def update_romancist(
+    romancist_id: int,
+    romancist: RomancistUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    """Update a romancist by ID."""
+    db_romancist = db.scalar(
+        select(Romancist).where(Romancist.id == romancist_id)
+    )
+
+    if not db_romancist:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Romancist not found",
+        )
+    
+    try:
+        # Update fields if they are provided
+        if romancist.name is not None:
+            db_romancist.name = romancist.name
+    
+        db.add(db_romancist)
+        db.commit()
+        db.refresh(db_romancist)
+    
+        return db_romancist
+    
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail="Romancist with this name already exists",
+        )
+
+@router.delete('/{romancist_id}', response_model=Message)
+def delete_romancist(
+    romancist_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
+):
+    """Delete a romancist by ID."""
+    db_romancist = db.scalar(
+        select(Romancist).where(Romancist.id == romancist_id)
+    )
+
+    if not db_romancist:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Romancist not found",
+        )
+    
+    db.delete(db_romancist)
+    db.commit()
+
+    return {'message': 'Romancist deleted successfully'}
+
+@router.get('/', response_model=RomancistList, status_code=HTTPStatus.OK)
+def read_romancists(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), nome: str | None = None):
+    """Get a list of romancists with optional search query."""
+    db_romancists_query = select(Romancist).offset(skip).limit(limit)
+    if nome:
+        db_romancists_query = db_romancists_query.where(Romancist.name.ilike(f'%{nome}%'))
+    
+    db_romancists = db.scalars(db_romancists_query).all()
+
+    return {'romancists': db_romancists}

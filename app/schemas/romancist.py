@@ -14,3 +14,12 @@ class RomancistResponse(BaseModel):
 class RomancistUpdate(BaseModel):
     """Validate data for updating romancist information."""
     name: str | None = None   
+
+class Message(BaseModel):
+    """Validate data for returning a message."""
+    message: str
+
+class RomancistList(BaseModel):
+    """Validate data for returning a list of romancists."""
+    romancists: list[RomancistResponse]
+
