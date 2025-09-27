@@ -7,6 +7,8 @@ app = FastAPI(title="MADR API")
 app.include_router(user.router)	
 app.include_router(auth.router)
 app.include_router(health.router)
+app.include_router(romancist.router)
+app.include_router(book.router)
 
 @app.get('/')
 def home():

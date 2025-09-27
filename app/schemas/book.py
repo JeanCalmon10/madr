@@ -21,5 +21,13 @@ class BookUpdate(BaseModel):
     title: str | None = None
     year: int | None = None
     romancist_id: int | None = None
-   
+    
+
+class BookList(BaseModel):
+    """Validate data for returning a list of books."""
+    books: list[BookResponse]
+
+class Message(BaseModel):
+    """Validate data for returning a message."""
+    message: str
 

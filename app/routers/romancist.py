@@ -4,6 +4,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 
 from typing import Annotated
 
@@ -87,7 +88,6 @@ def update_romancist(
         if romancist.name is not None:
             db_romancist.name = romancist.name
     
-        db.add(db_romancist)
         db.commit()
         db.refresh(db_romancist)
     
@@ -122,12 +122,26 @@ def delete_romancist(
     return {'message': 'Romancist deleted successfully'}
 
 @router.get('/', response_model=RomancistList, status_code=HTTPStatus.OK)
-def read_romancists(skip: int = 0, limit: int = 10, db: Session = Depends(get_db), nome: str | None = None):
-    """Get a list of romancists with optional search query."""
-    db_romancists_query = select(Romancist).offset(skip).limit(limit)
+def read_romancists(
+    skip: int = 0, 
+    limit: int = 10, 
+    db: Session = Depends(get_db), 
+    nome: str | None = None
+):
+    """Get a list of romancists with optional search query and conditional pagination."""
+    query = select(Romancist)
     if nome:
-        db_romancists_query = db_romancists_query.where(Romancist.name.ilike(f'%{nome}%'))
+        query = query.where(Romancist.name.ilike(f'%{nome}%'))
     
-    db_romancists = db.scalars(db_romancists_query).all()
+    # If a search query is provided, return all matching results.
+    total = db.scalar(
+        select(func.count).select_from(query.subquery())
+    )
 
+    # Apply pagination only if there is a total results more than 20.
+    if total > 20:
+        query = query.offset(skip).limit(limit)
+    
+    db_romancists = db.scalars(query).all()
+    
     return {'romancists': db_romancists}
