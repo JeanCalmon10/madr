@@ -170,7 +170,7 @@ def read_books(
     
     # If a search query is provided, return all matching results.
     total = db.scalar(
-        select(func.count).select_from(query.subquery())
+        select(func.count()).select_from(query.subquery())
     )
 
     if total > 20:

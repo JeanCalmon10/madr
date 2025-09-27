@@ -135,7 +135,7 @@ def read_romancists(
     
     # If a search query is provided, return all matching results.
     total = db.scalar(
-        select(func.count).select_from(query.subquery())
+        select(func.count()).select_from(query.subquery())
     )
 
     # Apply pagination only if there is a total results more than 20.
