@@ -17,6 +17,8 @@ from app.models.book import Book
 from app.models.user import User
 from app.models.romancist import Romancist
 
+from app.utils.sanitize import sanitize_name
+
 from http import HTTPStatus
 
 
@@ -32,14 +34,16 @@ def create_book(
     db: Session = Depends(get_db),
 ):
     """Create a new book."""
+    sanitized_title = sanitize_name(book.title) # Sanitize the book title
+
     db_book = db.scalar(
-        select(Book).where(Book.title == book.title)
+        select(Book).where(Book.title == sanitized_title) # Check for existing book with sanitized title
     )
 
     if db_book:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail="Book already exists",
+            detail="Book is already listed in MADR",
         )
    
     # Check if the romancist exists
@@ -50,11 +54,11 @@ def create_book(
     if not db_romancist:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail="Romancist does not exist",
+            detail="Romancis is not listed in MADR. Cannot create book with non-existent romancist.",
         )
     
     db_book = Book(
-        title=book.title,
+        title=sanitized_title,
         year=book.year,
         romancist_id=book.romancist_id,
     )
@@ -76,7 +80,7 @@ def read_book(book_id: int, db: Session = Depends(get_db)):
     if not db_book:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Book not found",
+            detail="Book is not listed in MADR",
         )
     
     return db_book
@@ -96,12 +100,13 @@ def update_book(
     if not db_book:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Book not found",
+            detail="Book is not listed in MADR",
         )
     
     try:
         if book_update.title is not None:
-            db_book.title = book_update.title
+            sanitized_title = sanitize_name(book_update.title)
+            db_book.title = sanitized_title
         if book_update.year is not None:
             db_book.year = book_update.year
         if book_update.romancist_id is not None:
@@ -118,15 +123,14 @@ def update_book(
             
             db_book.romancist_id = book_update.romancist_id
 
-            db.commit()
-            db.refresh(db_book)
-
-            return db_book
+        db.commit()
+        db.refresh(db_book)
+        return db_book
 
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail="Book with this title already exists",
+            detail="Book is already listed in MADR",
         )
 
 @router.delete('/{book_id}', response_model=Message)
@@ -143,7 +147,7 @@ def delete_book(
     if not db_book:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Book not found",
+            detail="Book is not listed in MADR",
         )
     
     db.delete(db_book)

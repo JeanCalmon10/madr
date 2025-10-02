@@ -16,6 +16,8 @@ from app.schemas.romancist import RomancistResponse, RomancistCreate, RomancistU
 from app.models.romancist import Romancist
 from app.models.user import User
 
+from app.utils.sanitize import sanitize_name
+
 from http import HTTPStatus
 
 router = APIRouter(
@@ -30,18 +32,21 @@ def create_romancist(
     db: Session = Depends(get_db),
 ):
     """Create a new romancist."""
+    sanitized_name = sanitize_name(romancist.name) # Sanitize the romancist name
+
     db_romancist = db.scalar(
-        select(Romancist).where(Romancist.name == romancist.name)
+        select(Romancist).where(Romancist.name == sanitized_name) # Check for existing romancist with sanitized name
     )
 
     if db_romancist:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail="Romancist already exists",
+            detail="Romancist is already listed in MADR",
         )
     
+    # Create new romancist with sanitized name
     db_romancist = Romancist(
-        name=romancist.name,
+        name=sanitized_name,
     )
 
     db.add(db_romancist)
@@ -60,7 +65,7 @@ def read_romancist(romancist_id: int, db: Session = Depends(get_db)):
     if not db_romancist:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Romancist not found",
+            detail="Romancist is not listed in MADR",
         )
     
     return db_romancist
@@ -80,13 +85,14 @@ def update_romancist(
     if not db_romancist:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Romancist not found",
+            detail="Romancist is not listed in MADR",
         )
     
     try:
         # Update fields if they are provided
         if romancist.name is not None:
-            db_romancist.name = romancist.name
+            sanitized_name = sanitize_name(romancist.name)
+            db_romancist.name = sanitized_name
     
         db.commit()
         db.refresh(db_romancist)
@@ -96,7 +102,7 @@ def update_romancist(
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail="Romancist with this name already exists",
+            detail="Romancist is already listed in MADR",
         )
 
 @router.delete('/{romancist_id}', response_model=Message)
@@ -113,7 +119,7 @@ def delete_romancist(
     if not db_romancist:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
-            detail="Romancist not found",
+            detail="Romancist is not listed in MADR",
         )
     
     db.delete(db_romancist)
