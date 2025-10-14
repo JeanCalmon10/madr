@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.romancist import Romancist
 from app.models.book import Book
 from app.core.security import hash_password
+from app.utils.sanitize import sanitize_name
 
 
 #  Set up a database for testing
@@ -105,12 +106,29 @@ def token(client, user):
 @pytest.fixture
 def romancist(session):
     """Create a sample romancist in the database."""
-    romancist = Romancist(name='Test Romancist')
+    sanitized_name = sanitize_name('Test Romancist')
+
+    romancist = Romancist(name=sanitized_name)
 
     session.add(romancist)
     session.commit()
 
     return romancist
+
+@pytest.fixture
+def romancists(session):
+    """Create multiple sample romancists in the database."""
+    names = ['Romancist One', 'Romancist Two', 'Romancist Three']
+    romancists = []
+
+    for name in names:
+        sanitized_name = sanitize_name(name)
+        romancists.append(Romancist(name=sanitized_name))
+    
+    session.add_all(romancists)
+    session.commit()
+
+    return romancists
 
 @pytest.fixture
 def book(session, romancist):
