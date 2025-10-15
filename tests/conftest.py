@@ -27,7 +27,12 @@ engine = create_engine(
 )
 
 # Create SessionLocal for testing that binds to the testing engine
-Testing_SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Testing_SessionLocal = sessionmaker(
+    autocommit=False, 
+    autoflush=False, 
+    expire_on_commit=False,
+    bind=engine
+)
 
 # The scope='function' means a new database session is created for each test function
 @pytest.fixture(scope='function', name='session')
@@ -112,7 +117,7 @@ def romancist(session):
 
     session.add(romancist)
     session.commit()
-
+    
     return romancist
 
 @pytest.fixture
@@ -133,8 +138,10 @@ def romancists(session):
 @pytest.fixture
 def book(session, romancist):
     """Create a sample book in the dastabase."""
+    sanitized_title = sanitize_name('Test Book')
+
     book = Book(
-        title='Test Book',
+        title=sanitized_title,
         year=2025,
         romancist_id=romancist.id,
     )
