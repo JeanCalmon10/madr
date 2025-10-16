@@ -6,6 +6,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
 
 # C extensions
 *.so
@@ -125,12 +129,16 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!*.example.env
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+!.env.example
 
 # Spyder project settings
 .spyderproject
@@ -177,7 +185,12 @@ pyrightconfig.json
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 database.db
+*.sqlite3
+*.db
 
 # VS Code settings
 .vscode/*.json
 vscode/*.json
+
+# Uploaded files
+/uploads/
