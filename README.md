@@ -263,7 +263,7 @@ This project is under the MIT License. See the `LICENSE` file for more details.
 
 **Jean Calmon**
 
-- GitHub:[JeanCalmon10](https://github.com/JeanCalmon10)
+- GitHub: [JeanCalmon10](https://github.com/JeanCalmon10)
 - Email: jeancalmon10@gmail.com
 
 ## 🙏 Acknowledgments
