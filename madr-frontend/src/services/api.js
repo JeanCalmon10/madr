@@ -1,4 +1,4 @@
-async function fecthHealthCheck() {
+async function fetchHealthCheck() {
     // Make an API call to the health check endpoint
     const url = 'http://localhost:8000/health/';
     try {
@@ -14,4 +14,4 @@ async function fecthHealthCheck() {
     }
 }
 
-export { fecthHealthCheck };
+export { fetchHealthCheck };

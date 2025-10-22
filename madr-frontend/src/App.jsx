@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { fecthHealthCheck } from "./services/api";
+import { fetchHealthCheck } from "./services/api";
 
 function App() {
   useEffect(() => {
-    fecthHealthCheck();
+    fetchHealthCheck();
   }, []);
 
   return (
